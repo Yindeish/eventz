@@ -1,0 +1,117 @@
+import { ai } from '@/gemini/config';
+import { iEvent } from '@/types/event';
+import { NextRequest, NextResponse } from 'next/server';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/firebase';
+
+export async function GET(request: NextRequest) {
+    try {
+        const prompt = `
+You are generating seed data for an event app.
+
+Generate EXACTLY 10 event objects.
+
+Every event MUST follow this exact shape and types (NO id field):
+
+{
+  "name": "String",
+  "location": "City, Country",
+  "participants": 0,
+  "startDate": "2026-02-10",
+  "endDate": "2026-02-10",
+  "time": "14:00",
+  "startTimeStamp": "2026-02-10T14:00:00Z",
+  "endTimeStamp": "2026-02-10T17:00:00Z",
+  "category": "Music | Business | Art | Health | Banking | Reading",
+  "about": "String",
+  "banner": "https://images.unsplash.com/photo-1769628628044-769bff843c17?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwzfHx8ZW58MHx8fHx8",
+  "gallery": [],
+  "organizerId": "org-1",
+  "organizer": null,
+  "artistsIds": [],
+  "artists": [],
+  "ticket": {
+    "type": "Free",
+    "economyPrice": 0,
+    "vipPrice": 0
+  },
+  "ticketsIds": [],
+  "tickets": [],
+  "commentsIds": [],
+  "comments": [],
+  "likesIds": [],
+  "likes": [],
+  "sharesCount": 0,
+  "likesCount": 0,
+  "commentsCount": 0,
+  "goingsCount": 0,
+  "goings": [],
+  "goingsIds": []
+}
+
+Rules:
+- Return ONLY a JSON array.
+- Exactly 10 objects.
+- No markdown.
+- No text outside the array.
+- No id field.
+- All dates must be in Feb 2026 or later.
+- Banner must always be the same URL above.
+`;
+        const result = await ai.models.generateContent({
+            model: 'gemini-3-pro-preview',
+            contents: prompt,
+        });
+
+        const raw = result.text as string;
+        console.log('Raw AI response:', raw);
+
+        let events: any[] = [];
+
+        try {
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed) || parsed.length !== 10) {
+                throw new Error('Invalid AI output length');
+            }
+            events = parsed;
+        } catch (err) {
+            return NextResponse.json(
+                { success: false, error: 'Invalid AI JSON output', raw },
+                { status: 400 }
+            );
+        }
+
+        const savedEvents: any[] = [];
+        const eventsCollection = collection(db, 'event'); // ✅ correct collection
+
+        for (const event of events) {
+            const docRef = await addDoc(eventsCollection, {
+                ...event,
+                createdAt: serverTimestamp(),
+            });
+
+            savedEvents.push({
+                id: docRef.id,
+                ...event,
+            });
+        }
+
+        console.log({prompt})
+
+        return NextResponse.json(
+            {
+                success: true,
+                prompt,
+                data: savedEvents,
+                count: savedEvents.length,
+            },
+            { status: 201 }
+        );
+    } catch (error) {
+        console.error('Error seeding events:', error);
+        return NextResponse.json(
+            { success: false, error: 'Failed to seed events' },
+            { status: 500 }
+        );
+    }
+}

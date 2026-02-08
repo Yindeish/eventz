@@ -1,0 +1,1 @@
+export const baseUrl = 'https://eventz-server.vercel.app/api'

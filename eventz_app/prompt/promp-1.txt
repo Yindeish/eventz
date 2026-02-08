@@ -1,0 +1,234 @@
+using these components, gluestack and nativewind, build these screens for my expo ts app. use this image "@/assets/images/icon.png" for any image that might exist on the screens:
+
+import { Pressable } from "react-native";
+import { ThemedTextProps, Tt } from "./text";
+import { ThemedTouchableOpacityProps } from "./touchable-opacity";
+
+const Btn = ({ container: { onPress, className: containerClassname, ...otherContainerProps }, text: { className: textClassname, children: textChild, ...otherTextProps } }: { container: ThemedTouchableOpacityProps, text: ThemedTextProps }) => {
+    return (
+        <Pressable onPress={onPress} className={`w-full h-[46px] flex-row items-center justify-center bg-[#5A189A] rounded-[10px] ${containerClassname}`} {...otherContainerProps}>
+            <Tt className={`text-[14px] text-white font-semibold ${textClassname}`} {...otherTextProps}>{textChild}</Tt>
+        </Pressable>
+    );
+}
+
+export default Btn;
+
+import { ViewProps } from "react-native";
+import { Tv } from "./view";
+
+export type ThemedContainerProps = ViewProps
+
+const Container = ({children, className, ...otherProps}: ThemedContainerProps) => {
+
+    return (
+        <Tv className={`w-full h-full px-[24px] bg-transparent ${className}`} {...otherProps}>
+            {children}
+        </Tv>
+    );
+}
+ 
+export default Container;
+
+import { Image, type ImageProps } from 'react-native';
+
+export type ThemedImageProps = ImageProps;
+
+export function Img({ ...otherProps }: ThemedImageProps) {
+
+  return <Image {...otherProps} />;
+}
+
+import { ReactNode } from 'react';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { Tv } from './view';
+
+const Kb = ({ bottomOffset = 62, className, children }: { bottomOffset?: number, className?: string, children: ReactNode }) => {
+    return (
+        <Tv className={`w-full h-full`}>
+            <KeyboardAwareScrollView bottomOffset={bottomOffset}  className={`flex-1 min-h-full ${className}`}>
+                {children}
+            </KeyboardAwareScrollView>
+        </Tv>
+    );
+}
+
+export default Kb;
+
+import { Link, type LinkProps } from 'expo-router';
+
+export type ThemedLinkProps = LinkProps
+
+export function Li({
+  className,
+  ...rest
+}: ThemedLinkProps) {
+
+  return (
+    <Link
+      className={className}
+      {...rest}
+    />
+  );
+}
+
+import { Pressable, type PressableProps } from 'react-native';
+
+export type ThemedPresableProps = PressableProps;
+
+export function Pr({ style, onPress, animate = true, ...otherProps }: ThemedPresableProps & Partial<{ animate: boolean; }>) {
+
+  return (
+    <Pressable
+      onPress={onPress}
+      className={`bg-transparent ${style}`} {...otherProps} />
+  )
+    ;
+}
+
+import { SafeAreaView, type SafeAreaViewProps } from 'react-native-safe-area-context';
+
+export type ThemedSafeViewProps = SafeAreaViewProps
+
+export function Sav({ className, ...otherProps }: ThemedSafeViewProps) {
+
+  return <SafeAreaView className={`relative bg-transparent ${className}`} {...otherProps} />;
+}
+
+
+import { ScrollView, type ScrollViewProps } from 'react-native';
+
+export type ThemedScrollViewProps = ScrollViewProps
+
+export function Ts({ className, ...otherProps }: ThemedScrollViewProps) {
+
+  return <ScrollView className={`bg-transparent ${className}`} {...otherProps} />;
+}
+
+import { Ref } from 'react';
+import { TextInput, type TextInputProps } from 'react-native';
+
+type FocusableInput = Ref<TextInput> | undefined;
+
+export type ThemedTextInputProps = TextInputProps & {
+  ref?: FocusableInput
+};
+
+export function Ti({
+  className,
+  placeholderTextColor,
+  ...rest
+}: ThemedTextInputProps) {
+
+  return (
+    <TextInput
+      ref={rest?.ref}
+      className={`text-black text-[14px] bg-transparent ${className}`}
+      placeholderTextColor={placeholderTextColor || '#94A3B8'}
+      {...rest}
+    />
+  );
+}
+
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { Text, type TextProps } from 'react-native';
+
+export type ThemedTextProps = TextProps & {
+  lightColor?: string;
+  darkColor?: string;
+  themed?: boolean
+}
+
+export function Tt({
+  style,
+  className,
+  lightColor,
+  darkColor,
+  themed = false,
+  ...rest
+}: ThemedTextProps) {
+  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+
+
+  return (
+    <Text
+      style={[
+        style,
+        themed ? { color } : {}
+      ]}
+      // className={`bg-transparent ${className}`}
+      className={`${className}`}
+      {...rest}
+    />
+  );
+}
+
+import React from "react";
+import { TextProps } from "react-native";
+import { TFontFamily, TFontWeight } from ".";
+import { Tt } from "../text";
+
+type UrbanistProps = TextProps & {
+    weight?: TFontWeight;
+    children: React.ReactNode;
+    themed?: boolean
+};
+
+const Urbanist = ({ weight = "400", children, className, style, themed = false, ...rest }: UrbanistProps) => {
+    const fontFamilies: TFontFamily = {
+        "100": "Urbanist_400Regular",
+        "200": "Urbanist_400Regular",
+        "300": "Urbanist_400Regular",
+        "400": "Urbanist_400Regular",
+        "500": "Urbanist_500Medium",
+        "600": "Urbanist_600SemiBold",
+        "700": "Urbanist_700Bold",
+        "800": "Urbanist_800ExtraBold",
+        "900": "Urbanist_900Black",
+    };
+    const fontFamily = fontFamilies[weight];
+
+    return (
+        <Tt
+            // className="text-[16px] text-black" 
+            // style={[{ fontFamily }, style]}
+            themed={themed}
+            style={[{ fontFamily }]}
+            className={`${className}`}
+            {...rest}>
+            {children}
+        </Tt>
+    );
+};
+
+export default Urbanist;
+
+
+
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { View, type ViewProps } from 'react-native';
+
+export type ThemedViewProps = ViewProps & {
+  lightColor?: string;
+  darkColor?: string;
+  themed?: boolean
+};
+
+export function Tv({ style, className, lightColor, darkColor, themed = false, ...otherProps }: ThemedViewProps) {
+  const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background');
+
+  return <View style={[themed ? { backgroundColor } : {}, style]} className={`${className}`} {...otherProps} />;
+}
+
+import SpinnerSvg from "@/components/shared/svgs/spinner";
+import { Tv } from "./view";
+
+const Spinner = () => {
+    return (
+        <Tv className="w-auto animate-spin ease-linear duration-300">
+            <SpinnerSvg />
+        </Tv>
+    );
+}
+
+export default Spinner;

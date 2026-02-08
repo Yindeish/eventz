@@ -1,0 +1,167 @@
+import { ai } from '@/gemini/config';
+import { iEvent } from '@/types/event';
+import { NextRequest, NextResponse } from 'next/server';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/firebase';
+
+export async function GET(request: NextRequest) {
+    try {
+        const prompt = `You are a data generator for an events management system. Your task is to generate exactly 10 realistic event objects.
+
+CRITICAL REQUIREMENTS:
+1. Generate EXACTLY 10 unique events
+2. Organize them into 4 groups:
+   - Group 1: 3 MUSIC events that share almost identical details (same category, similar name variations, same location, same time, similar descriptions, same FREE ticket prices)
+   - Group 2: 3 BUSINESS events that share almost identical details (same category, similar name variations, same location, similar times, similar descriptions, same FREE ticket prices)
+   - Group 3: 3 ART events that share almost identical details (same category, similar name variations, similar locations nearby, similar times, similar descriptions, same FREE ticket prices)
+   - Group 4: 1 HEALTH event (standalone, different from others, FREE ticket)
+
+3. NO artists required — leave artistsIds and artists as empty arrays.
+
+4. NO ID GENERATION — Do NOT include an "id" field in any event object. Firestore will assign unique IDs automatically after saving.
+
+5. For each event, respect this interface EXACTLY (NO id field):
+{
+  "name": "Event Name",
+  "location": "City, Country",
+  "participants": 0, // start at 0
+  "startDate": "YYYY-MM-DD", // dates must be in the future
+  "endDate": "YYYY-MM-DD", // endDate >= startDate
+  "time": "HH:MM", // 24-hour format
+  "startTimeStamp": "ISO8601 timestamp string", // e.g., "2026-02-15T14:00:00Z"
+  "endTimeStamp": "ISO8601 timestamp string", // endTimeStamp >= startTimeStamp
+  "category": "Music|Business|Art|Health|Banking|Reading",
+  "about": "Brief description of the event",
+  "banner": "https://images.unsplash.com/... (real Unsplash URL that displays)", // MUST be a real, working Unsplash image URL
+  "gallery": [], // empty array
+  "organizerId": "org-{number}",
+  "organizer": null, // null object
+  "artistsIds": [],
+  "artists": [],
+  "ticket": {
+    "type": "Free",
+    "economyPrice": 0,
+    "vipPrice": 0
+  },
+  "ticketsIds": [],
+  "tickets": [],
+  "commentsIds": [],
+  "comments": [],
+  "likesIds": [],
+  "likes": [],
+  "sharesCount": 0,
+  "likesCount": 0,
+  "commentsCount": 0,
+  "goingsCount": 0,
+  "goings": [],
+  "goingsIds": []
+}
+
+6. BANNER IMAGE URLs (CRITICAL):
+   - For every event, the "banner" field MUST be a REAL, working Unsplash image URL that will display correctly.
+   - Use these Unsplash image URLs as templates based on event category:
+     * Music events: https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&h=600&fit=crop (live music/concert images)
+     * Business events: https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=600&fit=crop (conference/business images)
+     * Art events: https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop (art/gallery images)
+     * Health events: https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&h=600&fit=crop (health/wellness images)
+   - YOU MAY VARY THE UNSPLASH IDs slightly but ensure all URLs start with https://images.unsplash.com/ and include query parameters ?w=800&h=600&fit=crop
+   - DO NOT use placeholder URLs like "https://example.com/image.jpg" — they will NOT display
+   - All image URLs MUST be directly accessible and displayable in a web browser
+
+7. STRICT GROUPING RULES:
+   - Within Group 1 (Music): All 3 events must have category='Music', nearly identical names with subtle variations (e.g., "Summer Music Fest", "Summer Music Festival", "Summer Music Celebration"), exact same location, times within 1 hour, all FREE with 0 prices.
+   - Within Group 2 (Business): All 3 events must have category='Business', nearly identical names with subtle variations (e.g., "Tech Summit 2026", "Tech Summit Conference", "Tech Summit Expo"), exact same location, times within 1 hour, all FREE with 0 prices.
+   - Within Group 3 (Art): All 3 events must have category='Art', nearly identical names with subtle variations (e.g., "Contemporary Art Show", "Contemporary Art Exhibition", "Contemporary Art Showcase"), locations in same city but different addresses, times within 1 hour, all FREE with 0 prices.
+   - Group 4: 1 standalone Health event with unique details, different location, different timing, FREE with 0 prices.
+
+7. DATA CONSISTENCY:
+   - All startTimeStamp and endTimeStamp must be valid ISO 8601 format.
+   - All startDate and endDate must match their timestamps.
+   - All dates must be in February 2026 or later (current date is 29 January 2026).
+   - All times must be realistic (not 00:00 or 23:59).
+   - ALL ticket types MUST be "Free" with economyPrice: 0 and vipPrice: 0.
+   - Location names must be real cities and countries.
+   - ALL "banner" fields MUST be real, working Unsplash URLs (starting with https://images.unsplash.com/ and ending with ?w=800&h=600&fit=crop).
+
+8. OUTPUT RULE (CRITICAL):
+   - Return ONLY a valid JavaScript/JSON array of 10 event objects (WITHOUT id fields).
+   - Do NOT include explanations, comments, headings, markdown, or extra text.
+   - Do NOT wrap the array in an object.
+   - Do NOT describe your reasoning outside the array.
+   - The response MUST be valid JSON that can be parsed immediately.
+   - Any response that is not a pure, valid JSON array will be rejected.
+
+Example output format (for 2 events only, you must return 10, NO id fields):
+[
+  {"name": "Summer Music Fest", "location": "London, UK", ...},
+  {"name": "Summer Music Festival", "location": "London, UK", ...}
+]
+
+Now generate exactly 10 events following all the rules above. REMEMBER: NO id field, ALL FREE tickets.`;
+
+        const result = await ai.models.generateContent({
+            model: 'gemini-3-pro-preview',
+            contents: prompt,
+        });
+
+        console.log('Raw AI response:', result.text);
+
+        // Parse the AI response
+        let events: any[] = [];
+        try {
+            const parsed = JSON.parse(result.text as string);
+            if (Array.isArray(parsed) && parsed.length === 10) {
+                events = parsed;
+            } else {
+                console.error('AI did not return exactly 10 events. Parsed type:', typeof parsed, 'Is array:', Array.isArray(parsed), 'Length:', parsed?.length || 'N/A');
+                return NextResponse.json(
+                    { success: false, error: 'AI did not generate exactly 10 events' },
+                    { status: 400 }
+                );
+            }
+        } catch (err) {
+            console.error('Error parsing AI response:', err);
+            console.error('Raw response text:', result.text);
+            console.error('Raw response:', JSON.stringify(result, null, 2));
+            return NextResponse.json(
+                { success: false, error: 'Failed to parse AI-generated events', debug: String(err) },
+                { status: 400 }
+            );
+        }
+
+        // Save events to Firestore
+        const savedEvents = [];
+        const eventsCollection = collection(db, 'event');
+
+        for (const event of events) {
+            try {
+                const docRef = await addDoc(eventsCollection, {
+                    ...event,
+                    createdAt: serverTimestamp(),
+                });
+                savedEvents.push({
+                    id: docRef.id,
+                    ...event,
+                });
+            } catch (error) {
+                console.error('Error saving event to Firestore:', error);
+            }
+        }
+
+        return NextResponse.json(
+            {
+                success: true,
+                data: savedEvents,
+                count: savedEvents.length,
+                message: `Successfully seeded ${savedEvents.length} events to Firestore`,
+            },
+            { status: 201 }
+        );
+    } catch (error) {
+        console.error('Error seeding events:', error);
+        return NextResponse.json(
+            { success: false, error: 'Failed to seed events' },
+            { status: 500 }
+        );
+    }
+}

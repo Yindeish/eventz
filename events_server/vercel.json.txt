@@ -1,0 +1,17 @@
+{
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "crons": [
+        {
+            "path": "/api/events/seed",
+            "schedule": "0 9,17 * * *"
+        },
+        {
+            "path": "/api/feeds/generate",
+            "schedule": "1 9,17 * * *"
+        },
+        {
+            "path": "/api/trending/generate",
+            "schedule": "2 9,17 * * *"
+        }
+    ]
+}

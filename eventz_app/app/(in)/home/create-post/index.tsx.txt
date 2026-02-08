@@ -1,0 +1,257 @@
+import TrendingEvent from "@/components/in/events/trending-event";
+import Edit from "@/components/in/home/create-post/svgs/edit";
+import Event from "@/components/in/home/create-post/svgs/event";
+import ImagePlus from "@/components/in/home/create-post/svgs/image-plus";
+import Poll from "@/components/in/home/create-post/svgs/poll";
+import Video from "@/components/in/home/create-post/svgs/video";
+import UploadImg from "@/components/in/home/svgs/upload-img";
+import Search from "@/components/in/svgs/search";
+import Btn from "@/components/shared/btn";
+import { burnt } from "@/components/shared/burnt";
+import Container from "@/components/shared/container";
+import Urbanist from "@/components/shared/fonts/urbanist";
+import { Img } from "@/components/shared/img";
+import { Pr } from "@/components/shared/pressable";
+import { Ts } from "@/components/shared/scroll-view";
+import { useSheetRef } from "@/components/shared/sheet";
+import SheetModal from "@/components/shared/sheet-modal";
+import { Tv } from "@/components/shared/view";
+import { Input, InputField } from "@/components/ui/input";
+import { Textarea, TextareaInput } from "@/components/ui/textarea";
+import { postsArr } from "@/constants/posts";
+import useAuth from "@/hooks/auth/useAuth";
+import { view } from "@/styles/view";
+import { router } from "expo-router";
+import { useFormik } from "formik";
+import { useState } from "react";
+import { FlatList } from "react-native";
+import { object, string } from "yup";
+
+const Index = () => {
+    const sheet = useSheetRef();
+    const { user } = useAuth()
+
+    const [imgs, setImgs] = useState<number[]>([])
+    const [eventTaggged, setEventTagged] = useState(false);
+    const [open, setOpen] = useState({
+        tag: false,
+    })
+    const [taggedArtists, setTaggedArtists] = useState([]);
+    const [improving, setImproving] = useState(false)
+    const [creating, setCreating] = useState(false)
+
+    const createPost = () => {
+        burnt.toast({ title: 'Your post is now live' })
+        setTimeout(() => {
+            router.push('/(in)/(tabs)/events')
+        }, 1000);
+    }
+
+    const improvePost = () => {
+
+    }
+
+    const form = useFormik({
+        initialValues: {
+            postText: '',
+            postImg: '',
+            postVideo: '',
+            eventId: ''
+        },
+        validationSchema: object({
+            postText: string().required(),
+            postImg: string(),
+            postVideo: string(),
+            eventId: string().required('You need to tag an event'),
+        }),
+        onSubmit: ({ eventId, postImg, postText, postVideo }) => {
+
+        }
+    })
+
+
+    return (
+        <Tv className="flex-1 flex-col gap-[40px] bg-white pt-[24px]">
+            <Tv className="w-full h--[233px] h-auto pb-[20px] border-b-[1px] border-b-[#D5D5D5]">
+                <Container className="h-auto flex-row gap-[20px]" style={[view.hAuto]}>
+                    <Img className="w-[40px] h-[40px] rounded-full" source={{ uri: user?.picture }} />
+
+                    <Tv className="flex-1 flex-col gap-[20px]">
+                        <Urbanist className="text-[#212121] text-[14px] font-medium">
+                            {user?.userName}
+                        </Urbanist>
+
+                        <Textarea
+                            size="md"
+                            isReadOnly={false}
+                            isInvalid={false}
+                            isDisabled={false}
+                            className="w-full min-h-[80px] bg-white"
+                            style={[view.borderWidth(0)]}
+                        >
+                            <TextareaInput placeholder="What’s on your mind?" className="bg-white" />
+                        </Textarea>
+
+                        {/* Images */}
+                        {(imgs.length > 0) && (<Tv className="w-full flex-col items-center gap-[12px]">
+                            <FlatList
+                                data={imgs}
+                                renderItem={(({ index }) => (
+                                    <Img className="w-[244px] h-[285px] rounded-[8px]" source={postsArr[1]?.postImg} key={index} />
+                                ))}
+                                horizontal={true}
+                                showsHorizontalScrollIndicator={false}
+                                contentContainerClassName="flex-row gap-[10px]"
+                                className="w-full"
+                            />
+                        </Tv>)}
+                        {/* Images */}
+
+                        {eventTaggged && (<Tv className="w-full flex-row justify-between pl--[84px] pt-[15px] pr-[24px] border-t-[1px] border-t-[#D5D5D5]">
+                            <Tv className="w-auto flelx-col gap-[12px]">
+                                <Urbanist className="text-[14px] font-semibold">Tagged Event</Urbanist>
+                                <Img className="w-[44px] h-[44px] rounded-full" source={postsArr[1]?.postImg} />
+                                <Urbanist className="text-[] text-[10px] font-semibold">
+                                    {'National Music Festival'}
+                                </Urbanist>
+                            </Tv>
+                            <Pr>
+                                <Edit />
+                            </Pr>
+                        </Tv>)}
+
+                        {/* Post Actions */}
+                        <Tv>
+                            <Tv className="w-auto flex-row gap-[14px] items-center">
+                                {[
+                                    {
+                                        icon: <ImagePlus />,
+                                        action: () => {
+                                            setImgs([1, 2, 3, 3, 4])
+                                        }
+                                    },
+                                    {
+                                        icon: <Video />,
+                                        action: () => { }
+                                    },
+                                    {
+                                        icon: <Event />,
+                                        action: () => {
+                                            sheet.open();
+                                        }
+                                    },
+                                    {
+                                        icon: <Poll />,
+                                        action: () => {
+                                            setOpen({ tag: !open.tag })
+                                        }
+                                    },
+                                ].map(({ action, icon }, index) => (
+                                    <Pr onPress={action} className="w-[22px] h-[22px]" key={index}>
+                                        {icon}
+                                    </Pr>
+                                ))}
+                            </Tv>
+
+                            {open.tag && (<Tv className="w-full h-[318px] flex-col gap-[12px] bg-white rounded-[20px] py-[21px] px-[24px] shadow-lg shadow-[#5A189A]">
+                                <Input className="w-full h-[35px] border-none outline-none focus:border-none focus:outline-none" style={[view.borderWidth(0)]}
+                                    onBlur={() => setOpen({ tag: false })}
+                                >
+                                    <InputField className="border-none outline-none focus:border-none focus:outline-none px-[0px]" placeholder="Search.." />
+                                </Input>
+                                <Tv className="w-full flex-1 flex-col gap-[8px]">
+                                    <FlatList
+                                        data={postsArr.concat(postsArr)}
+                                        renderItem={(({ index, item }) => (
+                                            <Pr
+                                                onPress={() => setOpen({ tag: false })}
+                                                className="w-full flex-row gap-[12px] items-center pb-[8px] border-b-[0.5px] border-b-[#EEEEEE]" key={index}>
+                                                <Img className="w-[28px] h-[28px] rounded-full" source={item?.authorImg} />
+                                                <Urbanist className="flex-1 text-[#212121] text-[12px] font-medium">{item?.authorName}</Urbanist>
+                                            </Pr>
+                                        ))}
+                                        horizontal={false}
+                                        showsVerticalScrollIndicator={false}
+                                        contentContainerClassName="flex-col gap-[10px]"
+                                    />
+                                </Tv>
+                            </Tv>)}
+                        </Tv>
+                        {/* Post Actions */}
+                    </Tv>
+                </Container>
+            </Tv>
+
+            {/* <Container className="h-auto">
+                <Btn
+                    container={{
+                        onPress: createPost
+                    }}
+                    text={{
+                        children: 'Create Post'
+                    }}
+                />
+            </Container> */}
+            <Container className="h-auto flex-row gap-2">
+                <Btn
+                    container={{
+                        onPress: improvePost,
+                        className: 'px-3',
+                        style: [view.wAuto]
+                    }}
+                    text={{
+                        children: 'Improve with AI',
+                        className: 'text-[10px]'
+                    }}
+                />
+                <Btn
+                    container={{
+                        onPress: createPost,
+                        className: 'flex-1'
+                    }}
+                    text={{
+                        children: 'Create Post'
+                    }}
+                />
+            </Container>
+
+
+            {/* Sheets */}
+            <SheetModal
+                ref={sheet.ref}
+                snapPoints={[856]}
+                allowSwipeDown={true}
+                closeOnBackdropPress={true}
+            >
+                <Tv className="w-full flex-col items-center gap-[20px] rounded-tr-[20px] rounded-tl-[20px] px-[20px] bg-white">
+                    <Urbanist className="text-[#212121] text-[24px] font-bold">Tag Event</Urbanist>
+
+                    <Tv className={`w-full h-[50px] flex-row items-center gap-[12px] px-[20px] bg-[#FAFAFA] rounded-[16px] mt-[2px]`}>
+                        <Search />
+                        <Input className="flex-1 border-none outline-none focus:border-none focus:outline-none" style={[view.borderWidth(0)]}
+                        >
+                            <InputField className="border-none outline-none focus:border-none focus:outline-none px-[0px]" placeholder="Search.." />
+                        </Input>
+                    </Tv>
+
+                    <FlatList
+                        data={postsArr.concat(postsArr)}
+                        renderItem={({ index, item }) => (
+                            <TrendingEvent onPress={() => {
+                                setEventTagged(true);
+                                sheet.close()
+                            }} event={item} key={index} />
+                        )}
+                        horizontal={false}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={[view.flexCol, view.gap(10)]}
+                        style={[view.wAuto, view.hAuto, view.minH(500), view.maxH(700), view.bg_transparent]}
+                    />
+                </Tv>
+            </SheetModal>
+            {/* Sheets */}
+        </Tv>
+    );
+}
+
+export default Index;

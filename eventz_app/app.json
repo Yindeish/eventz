@@ -1,0 +1,82 @@
+{
+  "expo": {
+    "name": "Eventz",
+    "slug": "eventz",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icons/ios.png",
+    "scheme": "eventz",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yindeish00.eventz",
+      "infoPlist": {
+        "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you.",
+        "SKAdNetworkItems": [
+          {
+            "SKAdNetworkIdentifier": "v9wttpbfk9.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "n38lu8286q.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "v9wttpbfk9.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "n38lu8286q.skadnetwork"
+          }
+        ],
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/images/icons/android.png",
+        "backgroundImage": "./assets/images/icons/android.png",
+        "monochromeImage": "./assets/images/icons/android.png"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.yindeish00.eventz"
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/icons/android.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/icons/splash-light.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "backgroundColor": "#ffffff"
+          }
+        }
+      ],
+      "@react-native-community/datetimepicker",
+      [
+        "expo-video",
+        {
+          "supportsBackgroundPlayback": true,
+          "supportsPictureInPicture": true
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "52dbf804-b072-4c84-b1d9-80810184b36a"
+      }
+    }
+  }
+}
