@@ -12,7 +12,7 @@ export default function Home() {
         <div className="text-gray-500 text-2xl">Download App</div>
 
         <a
-          href="/downloads/eventz-app.apk"
+          href="(https://drive.google.com/file/d/1O0W0tzhp1KVlLjyn-XPhaV33DyeKRPOb/view?usp=drivesdk)"
           download
           className="inline-block mt-3 px-5 py-3 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 transition"
         >

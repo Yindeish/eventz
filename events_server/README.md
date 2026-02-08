@@ -6,11 +6,16 @@
 
 ## 📱 Download App
 
-[⬇️ Download Eventz Android App (.apk)](https://eventz-server.vercel.app/downloads/eventz-app.apk)
-
+[⬇️ Download Eventz Android App (.apk)](https://drive.google.com/file/d/1O0W0tzhp1KVlLjyn-XPhaV33DyeKRPOb/view?usp=drivesdk)
 > Android only • Enable **“Install unknown apps”** if prompted.
 
 ---
+
+## Mobile app repository:
+# https://github.com/Yindeish/eventz.sh.git
+
+## Server repository:
+# https://github.com/Yindeish/eventz.server.git
 
 ## 🌐 Domain
 
